@@ -1,0 +1,21 @@
+# Streamlit local secrets
+.streamlit/secrets.toml
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp
