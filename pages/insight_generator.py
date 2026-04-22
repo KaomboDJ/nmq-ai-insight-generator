@@ -4,6 +4,7 @@ Upload any CSV or Excel file and get Claude-powered insights.
 """
 
 import io
+import re
 import pandas as pd
 import streamlit as st
 
@@ -60,12 +61,59 @@ with col_title:
 
 st.divider()
 
-# ── Data source ───────────────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+@st.cache_data(show_spinner="Reading file...")
+def load_file(file_bytes: bytes, file_name: str) -> pd.DataFrame:
+    if file_name.endswith(".csv"):
+        out = pd.read_csv(io.BytesIO(file_bytes))
+    else:
+        out = pd.read_excel(io.BytesIO(file_bytes))
+    out.columns = [c.strip().lower().replace(" ", "_") for c in out.columns]
+    return out.dropna(how="all").dropna(axis=1, how="all").reset_index(drop=True)
+
+
+@st.cache_data(show_spinner="Loading sheet...")
+def load_sheet(url: str) -> pd.DataFrame:
+    match = re.search(r"/spreadsheets/d/([a-zA-Z0-9_-]+)", url)
+    if not match:
+        raise ValueError("Could not find a sheet ID in that URL. Make sure you paste the full Google Sheets link.")
+    sheet_id = match.group(1)
+    gid_match = re.search(r"[#&?]gid=(\d+)", url)
+    gid = gid_match.group(1) if gid_match else "0"
+    export_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
+    out = pd.read_csv(export_url)
+    out.columns = [c.strip().lower().replace(" ", "_") for c in out.columns]
+    return out.dropna(how="all").dropna(axis=1, how="all").reset_index(drop=True)
+
+
+def render_insights_panel(df: pd.DataFrame, state_key: str) -> None:
+    st.subheader("AI Insights")
+    deep_mode = st.toggle(
+        "Deep mode (Sonnet)",
+        value=False,
+        key=f"deep_{state_key}",
+        help="Uses claude-sonnet-4-6 instead of Haiku — slower but more thorough.",
+    )
+    model_to_use = "claude-sonnet-4-6" if deep_mode else MODEL
+
+    col_btn, _ = st.columns([1, 4])
+    with col_btn:
+        generate = st.button("Generate insights", type="primary", key=f"gen_{state_key}")
+        regenerate = st.button("Regenerate", key=f"regen_{state_key}", help="Force a fresh response from Claude.")
+
+    if generate or regenerate:
+        with st.spinner("Claude is thinking..."):
+            result = generate_generic_insights(df, model=model_to_use)
+        st.session_state[state_key] = result
+
+    if state_key in st.session_state:
+        st.markdown(st.session_state[state_key])
+
+
+# ── Data source tabs ──────────────────────────────────────────────────────────
 
 tab_upload, tab_sheets = st.tabs(["Upload file", "Google Sheet"])
-
-df = None
-source_label = ""
 
 with tab_upload:
     uploaded = st.file_uploader(
@@ -73,80 +121,32 @@ with tab_upload:
         type=["xlsx", "xls", "csv"],
     )
 
-    @st.cache_data(show_spinner="Reading file...")
-    def load_file(file_bytes: bytes, file_name: str) -> pd.DataFrame:
-        if file_name.endswith(".csv"):
-            out = pd.read_csv(io.BytesIO(file_bytes))
-        else:
-            out = pd.read_excel(io.BytesIO(file_bytes))
-        out.columns = [c.strip().lower().replace(" ", "_") for c in out.columns]
-        out = out.dropna(how="all").dropna(axis=1, how="all").reset_index(drop=True)
-        return out
-
     if uploaded is not None:
-        df = load_file(uploaded.read(), uploaded.name)
-        source_label = uploaded.name
+        df_file = load_file(uploaded.read(), uploaded.name)
+        st.success(f"Loaded **{len(df_file):,} rows** and **{len(df_file.columns)} columns** from `{uploaded.name}`.")
+        with st.expander("Preview data (first 10 rows)"):
+            st.dataframe(df_file.head(10), use_container_width=True)
+        st.divider()
+        render_insights_panel(df_file, state_key="insight_file")
+    else:
+        st.info("Upload a file to get started.")
 
 with tab_sheets:
     st.caption("The sheet must be shared as **Anyone with the link can view**.")
-    sheet_url = st.text_input("Paste your Google Sheet URL", placeholder="https://docs.google.com/spreadsheets/d/...")
-
-    @st.cache_data(show_spinner="Loading sheet...")
-    def load_sheet(url: str) -> pd.DataFrame:
-        import re
-        match = re.search(r"/spreadsheets/d/([a-zA-Z0-9_-]+)", url)
-        if not match:
-            raise ValueError("Could not find a sheet ID in that URL. Make sure you paste the full Google Sheets link.")
-        sheet_id = match.group(1)
-        gid_match = re.search(r"[#&?]gid=(\d+)", url)
-        gid = gid_match.group(1) if gid_match else "0"
-        export_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
-        out = pd.read_csv(export_url)
-        out.columns = [c.strip().lower().replace(" ", "_") for c in out.columns]
-        out = out.dropna(how="all").dropna(axis=1, how="all").reset_index(drop=True)
-        return out
+    sheet_url = st.text_input(
+        "Paste your Google Sheet URL",
+        placeholder="https://docs.google.com/spreadsheets/d/...",
+    )
 
     if sheet_url:
         try:
-            df = load_sheet(sheet_url)
-            source_label = "Google Sheet"
+            df_sheet = load_sheet(sheet_url)
+            st.success(f"Loaded **{len(df_sheet):,} rows** and **{len(df_sheet.columns)} columns** from Google Sheet.")
+            with st.expander("Preview data (first 10 rows)"):
+                st.dataframe(df_sheet.head(10), use_container_width=True)
+            st.divider()
+            render_insights_panel(df_sheet, state_key="insight_sheet")
         except Exception as e:
             st.error(f"Could not load the sheet: {e}")
-            df = None
-
-if df is None:
-    st.info("Upload a file or paste a Google Sheet URL to get started.")
-    st.stop()
-
-st.success(
-    f"Loaded **{len(df):,} rows** and **{len(df.columns)} columns** from `{source_label}`."
-)
-
-with st.expander("Preview data (first 10 rows)"):
-    st.dataframe(df.head(10), use_container_width=True)
-
-st.divider()
-
-# ── AI Insights ───────────────────────────────────────────────────────────────
-
-st.subheader("AI Insights")
-
-deep_mode = st.toggle(
-    "Deep mode (Sonnet)",
-    value=False,
-    help="Uses claude-sonnet-4-6 instead of Haiku — slower but more thorough.",
-)
-model_to_use = "claude-sonnet-4-6" if deep_mode else MODEL
-
-col_btn, _ = st.columns([1, 4])
-with col_btn:
-    generate = st.button("Generate insights", type="primary")
-    regenerate = st.button("Regenerate", help="Force a fresh response from Claude.")
-
-if generate or regenerate:
-    with st.spinner("Claude is thinking..."):
-        result = generate_generic_insights(df, model=model_to_use)
-    st.session_state["generic_insight_result"] = result
-
-if "generic_insight_result" in st.session_state:
-    st.markdown(st.session_state["generic_insight_result"])
+    else:
+        st.info("Paste a Google Sheet URL to get started.")
