@@ -107,6 +107,41 @@ st.markdown("""
     line-height: 1.7;
   }
 
+  /* ── Inputs ── */
+  [data-baseweb="input"], [data-baseweb="textarea"] {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    border-radius: 8px !important;
+  }
+  [data-baseweb="input"] input,
+  [data-baseweb="textarea"] textarea {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+  }
+  [data-baseweb="select"] > div {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    color: #0f172a !important;
+    border-radius: 8px !important;
+  }
+  [data-baseweb="select"] span { color: #0f172a !important; }
+  [data-testid="stFileUploader"] {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    border-radius: 10px !important;
+  }
+  [data-testid="stFileUploader"] * { color: #0f172a !important; }
+  [data-baseweb="popover"] ul {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+  }
+  [data-baseweb="popover"] li { color: #0f172a !important; }
+  [data-baseweb="popover"] li:hover {
+    background-color: rgba(99, 102, 241, 0.1) !important;
+  }
+
   /* ── Primary button ── */
   div.stButton > button[kind="primary"] {
     background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%) !important;
