@@ -80,6 +80,7 @@ with tab_upload:
         else:
             out = pd.read_excel(io.BytesIO(file_bytes))
         out.columns = [c.strip().lower().replace(" ", "_") for c in out.columns]
+        out = out.dropna(how="all").dropna(axis=1, how="all").reset_index(drop=True)
         return out
 
     if uploaded is not None:
@@ -102,6 +103,7 @@ with tab_sheets:
         export_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
         out = pd.read_csv(export_url)
         out.columns = [c.strip().lower().replace(" ", "_") for c in out.columns]
+        out = out.dropna(how="all").dropna(axis=1, how="all").reset_index(drop=True)
         return out
 
     if sheet_url:
