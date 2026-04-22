@@ -256,6 +256,14 @@ def generate_insights_vs_benchmark(
     df_benchmark: pd.DataFrame,
     model: str = None,
 ) -> str:
+    def _normalize_cols(df: pd.DataFrame) -> pd.DataFrame:
+        df = df.copy()
+        df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+        return df
+
+    df_actual = _normalize_cols(df_actual)
+    df_benchmark = _normalize_cols(df_benchmark)
+
     actual_summary = _build_generic_summary(df_actual)
     benchmark_summary = _build_generic_summary(df_benchmark)
     return _call_claude(
@@ -263,6 +271,9 @@ def generate_insights_vs_benchmark(
         user_prompt=(
             f"## ACTUAL RESULTS\n{actual_summary}\n\n"
             f"## BENCHMARK / MEDIA PLAN\n{benchmark_summary}\n\n"
+            "Column names in both datasets have been normalised to lowercase, so 'Impressions', "
+            "'IMPRESSIONS', and 'impressions' are all the same metric. Match columns by their "
+            "meaning, not their exact name.\n\n"
             "Compare actual vs benchmark and give me:\n"
             "1. How did we perform vs the plan — metric by metric\n"
             "2. Where did we exceed expectations and why\n"
