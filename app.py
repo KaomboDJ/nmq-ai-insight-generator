@@ -28,17 +28,102 @@ st.set_page_config(
 
 # ── Styling ───────────────────────────────────────────────────────────────────
 
-st.markdown(
-    """
-    <style>
-    [data-testid="stAppViewContainer"] { background-color: #ffffff; color: #111111; }
-    [data-testid="stHeader"]           { background-color: #ffffff; }
-    [data-testid="stSidebar"]          { display: none; }
-    [data-testid="collapsedControl"]   { display: none; }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+st.markdown("""
+<style>
+  .stApp {
+    background-color: #f8fafc;
+    color: #0f172a;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  [data-testid="stHeader"] {
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  [data-testid="stSidebar"]        { display: none; }
+  [data-testid="collapsedControl"] { display: none; }
+
+  /* ── Tabs ── */
+  .stTabs [data-baseweb="tab-list"] {
+    background-color: #f1f5f9;
+    border-radius: 12px;
+    padding: 4px;
+    gap: 2px;
+    border: 1px solid #e2e8f0;
+  }
+  .stTabs [data-baseweb="tab"] {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px !important;
+    padding: 6px 16px !important;
+    transition: all 0.15s ease;
+    border: none !important;
+  }
+  .stTabs [data-baseweb="tab"]:hover {
+    color: #0f172a !important;
+    background-color: rgba(99, 102, 241, 0.1) !important;
+  }
+  .stTabs [aria-selected="true"] {
+    background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 12px rgba(99, 102, 241, 0.4) !important;
+  }
+
+  /* ── Typography ── */
+  h1, h2, h3 {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em;
+  }
+  h1 { font-size: 1.6rem !important; }
+  h2 { font-size: 1.2rem !important; }
+  h3 { font-size: 1rem !important; }
+  p, label, span { color: #0f172a !important; }
+
+  /* ── Dataframe ── */
+  .stDataFrame {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  /* ── Divider ── */
+  hr {
+    border-color: #e2e8f0 !important;
+    margin: 16px 0 !important;
+    opacity: 0.5;
+  }
+
+  /* ── Insights output ── */
+  .insights-output {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 3px solid #6366f1;
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-top: 12px;
+    line-height: 1.7;
+  }
+
+  /* ── Primary button ── */
+  div.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    padding: 10px 24px !important;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
+  }
+  div.stButton > button[kind="primary"]:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5) !important;
+  }
+</style>
+""", unsafe_allow_html=True)
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
