@@ -59,15 +59,8 @@ st.markdown(
 
 # ── Header ────────────────────────────────────────────────────────────────────
 
-col_logo, col_title = st.columns([1, 5])
-with col_logo:
-    st.image(
-        "https://nmqdigital.com/hs-fs/hubfs/nmq-digital-logo.png?width=294&height=116&name=nmq-digital-logo.png",
-        width=160,
-    )
-with col_title:
-    st.title("NMQ AI Insight Generator")
-    st.caption("Upload any data file and let Claude find what matters.")
+st.title("NMQ AI Insight Generator")
+st.caption("Upload any data file and let Claude find what matters.")
 
 st.divider()
 
