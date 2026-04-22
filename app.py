@@ -25,37 +25,6 @@ st.set_page_config(
     layout="wide",
 )
 
-# ── Styling ───────────────────────────────────────────────────────────────────
-
-st.markdown(
-    """
-    <style>
-    [data-testid="stAppViewContainer"] { background-color: #ffffff; color: #111111; }
-    [data-testid="stHeader"] { background-color: transparent; }
-    [data-testid="stSidebar"] { display: none; }
-    [data-testid="collapsedControl"] { display: none; }
-    h1, h2, h3 { color: #000000; }
-    .stTabs [data-baseweb="tab-list"] { border-bottom: 2px solid #e5e7eb; }
-    .stTabs [data-baseweb="tab"] { color: #555555 !important; font-weight: 500; }
-    .stTabs [aria-selected="true"] { color: #E8531F !important; border-bottom: 2px solid #E8531F !important; }
-    .stButton > button, button[kind="primary"], button[kind="secondary"] {
-        background-color: #E8531F !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 6px !important;
-        font-weight: 600 !important;
-    }
-    .stButton > button:hover, button[kind="primary"]:hover, button[kind="secondary"]:hover {
-        background-color: #c94418 !important;
-        color: white !important;
-    }
-    .phase-header-awareness  { color: #7F77DD; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
-    .phase-header-consideration { color: #1D9E75; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
-    .phase-header-purchase   { color: #D85A30; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -229,13 +198,11 @@ def render_kpi_section(phases: list, kpis: dict) -> None:
         phase_kpis = kpis.get(phase, {})
         if not phase_kpis:
             continue
-        color = PHASE_COLORS[phase]
-        label = PHASE_LABELS[phase]
-        st.markdown(f'<div class="phase-header-{phase}">{label}</div>', unsafe_allow_html=True)
+        st.markdown(f"#### {PHASE_LABELS[phase]}")
         cols = st.columns(min(len(phase_kpis), 4))
         for i, (name, (value, fmt)) in enumerate(phase_kpis.items()):
             cols[i % 4].metric(name, fmt_val(value, fmt))
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.write("")
 
 
 def _get_col(df: pd.DataFrame, col_map: dict, key: str) -> pd.Series | None:
@@ -259,7 +226,7 @@ def render_charts(phases: list, df: pd.DataFrame, col_map: dict) -> None:
 
     # ── Awareness charts ──────────────────────────────────────────────────────
     if "awareness" in phases:
-        st.markdown('<div class="phase-header-awareness">Awareness Charts</div>', unsafe_allow_html=True)
+        st.markdown("#### Awareness Charts")
 
         imp_col   = num("impressions")
         reach_col = num("reach")
@@ -314,7 +281,7 @@ def render_charts(phases: list, df: pd.DataFrame, col_map: dict) -> None:
 
     # ── Consideration charts ──────────────────────────────────────────────────
     if "consideration" in phases:
-        st.markdown('<div class="phase-header-consideration">Consideration Charts</div>', unsafe_allow_html=True)
+        st.markdown("#### Consideration Charts")
 
         clicks_col = num("clicks")
         imp_col    = num("impressions")
@@ -368,7 +335,7 @@ def render_charts(phases: list, df: pd.DataFrame, col_map: dict) -> None:
 
     # ── Purchase / Lead charts ────────────────────────────────────────────────
     if "purchase" in phases:
-        st.markdown('<div class="phase-header-purchase">Purchase / Lead Charts</div>', unsafe_allow_html=True)
+        st.markdown("#### Purchase / Lead Charts")
 
         conv_col  = num("conversions")
         rev_col   = num("revenue")
