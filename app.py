@@ -8,7 +8,7 @@ import re
 import pandas as pd
 import streamlit as st
 
-from src.generator import generate_generic_insights, MODEL
+from src.generator import generate_generic_insights, generate_insights_vs_benchmark, MODEL
 
 # ── Page config ───────────────────────────────────────────────────────────────
 
@@ -92,6 +92,25 @@ def load_sheet(url: str) -> pd.DataFrame:
 
 def render_insights_panel(df: pd.DataFrame, state_key: str) -> None:
     st.subheader("AI Insights")
+
+    # Optional benchmark upload
+    bench_key = f"bench_{state_key}"
+    with st.expander("Add benchmark / media plan (optional)"):
+        bench_file = st.file_uploader(
+            "Upload benchmark file (Excel or CSV)",
+            type=["xlsx", "xls", "csv"],
+            key=f"bench_upload_{state_key}",
+        )
+        if bench_file is not None:
+            df_bench = load_file(bench_file.read(), bench_file.name)
+            st.session_state[bench_key] = df_bench
+            st.success(f"Benchmark loaded: **{len(df_bench):,} rows** and **{len(df_bench.columns)} columns**.")
+        elif bench_key in st.session_state:
+            st.info("Benchmark already loaded. Upload a new file to replace it.")
+
+    df_benchmark = st.session_state.get(bench_key)
+    has_benchmark = df_benchmark is not None
+
     deep_mode = st.toggle(
         "Deep mode (Sonnet)",
         value=False,
@@ -100,14 +119,18 @@ def render_insights_panel(df: pd.DataFrame, state_key: str) -> None:
     )
     model_to_use = "claude-sonnet-4-6" if deep_mode else MODEL
 
+    btn_label = "Generate insights vs benchmark" if has_benchmark else "Generate insights"
     col_btn, _ = st.columns([1, 4])
     with col_btn:
-        generate = st.button("Generate insights", type="primary", key=f"gen_{state_key}")
+        generate = st.button(btn_label, type="primary", key=f"gen_{state_key}")
         regenerate = st.button("Regenerate", key=f"regen_{state_key}", help="Force a fresh response from Claude.")
 
     if generate or regenerate:
         with st.spinner("Claude is thinking..."):
-            result = generate_generic_insights(df, model=model_to_use)
+            if has_benchmark:
+                result = generate_insights_vs_benchmark(df, df_benchmark, model=model_to_use)
+            else:
+                result = generate_generic_insights(df, model=model_to_use)
         st.session_state[state_key] = result
 
     if state_key in st.session_state:

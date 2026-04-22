@@ -237,6 +237,43 @@ def _build_generic_summary(df: pd.DataFrame) -> str:
     return "\n".join(lines)
 
 
+BENCHMARK_SYSTEM_PROMPT = """You are a senior media strategist. You will be given two datasets: actual campaign results and a benchmark or media plan.
+
+Your job is to do a clear gap analysis between the two.
+
+When analysing, you will:
+1. Compare actual performance vs the benchmark metric by metric
+2. Highlight where results exceeded the benchmark and why
+3. Flag where results fell short of the benchmark and why
+4. Give specific, prioritised recommendations for the next period
+
+Use ↑ ↓ → to show direction vs benchmark. Be direct. Reference actual numbers and percentage differences.
+Format clearly with markdown headers. Never say "based on the data provided" — just state the insight directly."""
+
+
+def generate_insights_vs_benchmark(
+    df_actual: pd.DataFrame,
+    df_benchmark: pd.DataFrame,
+    model: str = None,
+) -> str:
+    actual_summary = _build_generic_summary(df_actual)
+    benchmark_summary = _build_generic_summary(df_benchmark)
+    return _call_claude(
+        system=BENCHMARK_SYSTEM_PROMPT,
+        user_prompt=(
+            f"## ACTUAL RESULTS\n{actual_summary}\n\n"
+            f"## BENCHMARK / MEDIA PLAN\n{benchmark_summary}\n\n"
+            "Compare actual vs benchmark and give me:\n"
+            "1. How did we perform vs the plan — metric by metric\n"
+            "2. Where did we exceed expectations and why\n"
+            "3. Where did we fall short and why\n"
+            "4. Specific recommendations for the next period\n\n"
+            "Use ↑ ↓ → to show direction. Reference actual numbers and % differences."
+        ),
+        model=model,
+    )
+
+
 def generate_generic_insights(df: pd.DataFrame, model: str = None) -> str:
     summary = _build_generic_summary(df)
     return _call_claude(
