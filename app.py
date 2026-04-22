@@ -350,6 +350,37 @@ def render_kpi_section(phases: list, kpis: dict) -> None:
         st.write("")
 
 
+def _style_fig(fig, height: int = 300) -> None:
+    """Apply clean, consistent light-theme styling to any Plotly figure."""
+    fig.update_layout(
+        height=height,
+        margin=dict(l=0, r=0, t=36, b=0),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="Inter, -apple-system, sans-serif", color="#0f172a", size=12),
+        title_font=dict(size=13, color="#0f172a", family="Inter, sans-serif"),
+        legend=dict(
+            bgcolor="rgba(0,0,0,0)",
+            bordercolor="rgba(0,0,0,0)",
+            font=dict(color="#64748b", size=11),
+        ),
+        xaxis=dict(
+            showgrid=False,
+            zeroline=False,
+            tickfont=dict(color="#64748b", size=11),
+            linecolor="#e2e8f0",
+        ),
+        yaxis=dict(
+            showgrid=True,
+            gridcolor="rgba(0,0,0,0.05)",
+            zeroline=False,
+            tickfont=dict(color="#64748b", size=11),
+            linecolor="rgba(0,0,0,0)",
+        ),
+    )
+    fig.update_traces(marker_line_width=0)
+
+
 def _get_col(df: pd.DataFrame, col_map: dict, key: str) -> pd.Series | None:
     col = col_map.get(key)
     if col and col in df.columns:
@@ -392,7 +423,8 @@ def render_charts(phases: list, df: pd.DataFrame, col_map: dict) -> None:
                               color=ch_col if has_ch and ch_col in grp.columns else None,
                               title="Impressions & Reach Over Time",
                               color_discrete_sequence=[PHASE_COLORS["awareness"], "#b0aae8"])
-                fig.update_layout(template="plotly_white", legend_title_text="")
+                fig.update_layout(legend_title_text="")
+                _style_fig(fig)
                 st.plotly_chart(fig, use_container_width=True)
             elif imp_col:
                 st.info("No date column detected — time series unavailable.")
@@ -407,7 +439,7 @@ def render_charts(phases: list, df: pd.DataFrame, col_map: dict) -> None:
                 grp["CPM"] = grp[spend_col] / grp[imp_col] * 1000
                 fig = px.bar(grp, x=ch_col, y="CPM", title="CPM by Channel",
                              color_discrete_sequence=[PHASE_COLORS["awareness"]])
-                fig.update_layout(template="plotly_white")
+                _style_fig(fig)
                 st.plotly_chart(fig, use_container_width=True)
 
         if has_ch and imp_col and reach_col:
@@ -421,7 +453,7 @@ def render_charts(phases: list, df: pd.DataFrame, col_map: dict) -> None:
                          color_discrete_sequence=[PHASE_COLORS["awareness"]])
             fig.add_hline(y=5, line_dash="dash", line_color="red",
                           annotation_text="Overexposure warning (>5)")
-            fig.update_layout(template="plotly_white")
+            _style_fig(fig)
             st.plotly_chart(fig, use_container_width=True)
 
     # ── Consideration charts ──────────────────────────────────────────────────
@@ -449,7 +481,8 @@ def render_charts(phases: list, df: pd.DataFrame, col_map: dict) -> None:
                               color=ch_col if has_ch and ch_col in grp.columns else None,
                               title="CTR Over Time by Channel",
                               color_discrete_sequence=[PHASE_COLORS["consideration"]])
-                fig.update_layout(template="plotly_white", legend_title_text="")
+                fig.update_layout(legend_title_text="")
+                _style_fig(fig)
                 st.plotly_chart(fig, use_container_width=True)
 
         with col_b:
@@ -463,7 +496,8 @@ def render_charts(phases: list, df: pd.DataFrame, col_map: dict) -> None:
                 grp = grp.sort_values("CPC", ascending=False)
                 fig = px.bar(grp, x=camp_col, y="CPC", title="CPC by Campaign (high to low)",
                              color_discrete_sequence=[PHASE_COLORS["consideration"]])
-                fig.update_layout(template="plotly_white", xaxis_tickangle=-30)
+                fig.update_layout(xaxis_tickangle=-30)
+                _style_fig(fig)
                 st.plotly_chart(fig, use_container_width=True)
 
         if has_ch and eng_col and imp_col:
@@ -475,7 +509,7 @@ def render_charts(phases: list, df: pd.DataFrame, col_map: dict) -> None:
             grp["Engagement Rate (%)"] = grp[eng_col] / grp[imp_col] * 100
             fig = px.bar(grp, x=ch_col, y="Engagement Rate (%)", title="Engagement Rate by Channel",
                          color_discrete_sequence=[PHASE_COLORS["consideration"]])
-            fig.update_layout(template="plotly_white")
+            _style_fig(fig)
             st.plotly_chart(fig, use_container_width=True)
 
     # ── Purchase / Lead charts ────────────────────────────────────────────────
@@ -502,7 +536,8 @@ def render_charts(phases: list, df: pd.DataFrame, col_map: dict) -> None:
                 grp = tmp.groupby(date_col, as_index=False)[y_cols].sum()
                 fig = px.line(grp, x=date_col, y=y_cols, title="Conversions & Revenue Over Time",
                               color_discrete_sequence=[PHASE_COLORS["purchase"], "#e8956e"])
-                fig.update_layout(template="plotly_white", legend_title_text="")
+                fig.update_layout(legend_title_text="")
+                _style_fig(fig)
                 st.plotly_chart(fig, use_container_width=True)
 
         with col_b:
@@ -519,7 +554,8 @@ def render_charts(phases: list, df: pd.DataFrame, col_map: dict) -> None:
                               annotation_text="Break-even (ROAS = 1)")
                 fig.add_hline(y=3, line_dash="dash", line_color="green",
                               annotation_text="Target (ROAS = 3)")
-                fig.update_layout(template="plotly_white", xaxis_tickangle=-30)
+                fig.update_layout(xaxis_tickangle=-30)
+                _style_fig(fig)
                 st.plotly_chart(fig, use_container_width=True)
 
         # Funnel drop-off
@@ -536,7 +572,8 @@ def render_charts(phases: list, df: pd.DataFrame, col_map: dict) -> None:
                 textinfo="value+percent previous",
                 marker_color=[PHASE_COLORS["awareness"], PHASE_COLORS["consideration"], PHASE_COLORS["purchase"]][:len(stages)],
             ))
-            fig.update_layout(title="Funnel: Impressions → Clicks → Conversions", template="plotly_white")
+            fig.update_layout(title="Funnel: Impressions → Clicks → Conversions")
+            _style_fig(fig, height=320)
             st.plotly_chart(fig, use_container_width=True)
 
     # ── Cross-phase normalised timeline ───────────────────────────────────────
@@ -562,7 +599,8 @@ def render_charts(phases: list, df: pd.DataFrame, col_map: dict) -> None:
             y_cols = [PHASE_LABELS[p] for p in phases if PHASE_LABELS[p] in timeline_df.columns]
             fig = px.line(timeline_df, x=date_col, y=y_cols, title="Normalised Performance by Phase",
                           color_discrete_sequence=[PHASE_COLORS[p] for p in phases])
-            fig.update_layout(template="plotly_white", legend_title_text="", yaxis_title="Index (0–100)")
+            fig.update_layout(legend_title_text="", yaxis_title="Index (0–100)")
+            _style_fig(fig)
             st.plotly_chart(fig, use_container_width=True)
 
 
