@@ -125,12 +125,16 @@ st.markdown("""
     border-radius: 8px !important;
   }
   [data-baseweb="select"] span { color: #0f172a !important; }
-  [data-testid="stFileUploader"] {
+  [data-testid="stFileUploader"],
+  [data-testid="stFileUploaderDropzone"],
+  [data-testid="stFileUploaderDropzoneInstructions"],
+  section[data-testid="stFileUploaderDropzone"] {
     background-color: #ffffff !important;
     border-color: #e2e8f0 !important;
     border-radius: 10px !important;
   }
-  [data-testid="stFileUploader"] * { color: #0f172a !important; }
+  [data-testid="stFileUploader"] *,
+  [data-testid="stFileUploaderDropzone"] * { color: #0f172a !important; }
   [data-baseweb="popover"] ul {
     background-color: #ffffff !important;
     color: #0f172a !important;
