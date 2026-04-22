@@ -25,7 +25,8 @@ st.markdown(
     <style>
     [data-testid="stAppViewContainer"] { background-color: #ffffff; color: #111111; }
     [data-testid="stHeader"] { background-color: transparent; }
-    [data-testid="stSidebar"] { background-color: #f5f5f5; }
+    [data-testid="stSidebar"] { display: none; }
+    [data-testid="collapsedControl"] { display: none; }
     h1, h2, h3 { color: #000000; }
     .stButton > button,
     button[kind="primary"],
