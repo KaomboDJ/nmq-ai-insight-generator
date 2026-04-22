@@ -26,14 +26,21 @@ st.markdown(
     [data-testid="stHeader"] { background-color: transparent; }
     [data-testid="stSidebar"] { background-color: #f5f5f5; }
     h1, h2, h3 { color: #000000; }
-    .stButton > button {
-        background-color: #E8531F;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-weight: 600;
+    .stButton > button,
+    button[kind="primary"],
+    button[kind="secondary"] {
+        background-color: #E8531F !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
     }
-    .stButton > button:hover { background-color: #c94418; color: white; }
+    .stButton > button:hover,
+    button[kind="primary"]:hover,
+    button[kind="secondary"]:hover {
+        background-color: #c94418 !important;
+        color: white !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
