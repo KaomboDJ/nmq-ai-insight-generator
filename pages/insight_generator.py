@@ -22,18 +22,18 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    [data-testid="stAppViewContainer"] { background-color: #0f172a; color: #e2e8f0; }
+    [data-testid="stAppViewContainer"] { background-color: #ffffff; color: #111111; }
     [data-testid="stHeader"] { background-color: transparent; }
-    [data-testid="stSidebar"] { background-color: #1e293b; }
-    h1, h2, h3 { color: #f8fafc; }
+    [data-testid="stSidebar"] { background-color: #f5f5f5; }
+    h1, h2, h3 { color: #000000; }
     .stButton > button {
-        background-color: #6366f1;
+        background-color: #E8531F;
         color: white;
         border: none;
         border-radius: 6px;
         font-weight: 600;
     }
-    .stButton > button:hover { background-color: #4f46e5; color: white; }
+    .stButton > button:hover { background-color: #c94418; color: white; }
     </style>
     """,
     unsafe_allow_html=True,
