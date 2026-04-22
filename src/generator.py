@@ -302,6 +302,61 @@ def generate_generic_insights(df: pd.DataFrame, model: str = None) -> str:
     )
 
 
+PHASE_INSIGHT_SYSTEM_PROMPT = """You are a senior paid media strategist. You will receive campaign KPI data broken down by funnel phase.
+
+For each active phase, produce a focused insight block with:
+- A short headline summarising performance for that phase
+- 2 highlights (what is working, with specific numbers)
+- 2 lowlights (what needs attention, with specific numbers)
+- 1–2 concrete recommendations tied to that phase's goals
+
+If multiple phases are active, add a cross-phase section at the end:
+- Where is the biggest funnel drop-off between phases?
+- One cross-phase recommendation
+
+Awareness benchmarks: good CPM < €5, good VTR > 30%, healthy Frequency 2–4, warning Frequency > 6
+Consideration benchmarks: good CTR > 1%, warning CPC above average by 30%+
+Purchase benchmarks: good ROAS > 3, warning ROAS < 1, good CVR > 3%
+
+Use ↑ ↓ → to show direction. Be direct and specific. Format with markdown headers per phase.
+Never say "based on the data provided" — just state the insight."""
+
+
+def generate_phase_insights(
+    phases: list,
+    kpi_summary: dict,
+    model: str = None,
+) -> str:
+    """Generate phase-scoped insights from pre-computed KPI summaries.
+
+    kpi_summary: { 'awareness': {'Impressions': 1200000, 'CPM': 4.2, ...}, ... }
+    """
+    lines = ["## CAMPAIGN KPI SUMMARY BY PHASE\n"]
+    for phase in phases:
+        label = {"awareness": "Awareness", "consideration": "Consideration", "purchase": "Purchase / Lead"}.get(phase, phase)
+        lines.append(f"### {label}")
+        phase_kpis = kpi_summary.get(phase, {})
+        if phase_kpis:
+            for name, value in phase_kpis.items():
+                lines.append(f"  - {name}: {value}")
+        else:
+            lines.append("  No data available for this phase.")
+        lines.append("")
+
+    prompt_body = "\n".join(lines)
+    phase_labels = [{"awareness": "Awareness", "consideration": "Consideration", "purchase": "Purchase / Lead"}.get(p, p) for p in phases]
+
+    return _call_claude(
+        system=PHASE_INSIGHT_SYSTEM_PROMPT,
+        user_prompt=(
+            f"{prompt_body}\n\n"
+            f"Active phases: {', '.join(phase_labels)}\n\n"
+            "Generate the insight blocks as described. Be specific, reference the actual numbers above."
+        ),
+        model=model,
+    )
+
+
 def _call_claude(system: str, user_prompt: str, model: str = None) -> str:
     api_key = st.secrets.get("anthropic", {}).get("api_key", "")
     if not api_key:
