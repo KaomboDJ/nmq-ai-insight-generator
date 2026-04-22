@@ -26,6 +26,20 @@ st.set_page_config(
 )
 
 
+# ── Styling ───────────────────────────────────────────────────────────────────
+
+st.markdown(
+    """
+    <style>
+    [data-testid="stAppViewContainer"] { background-color: #ffffff; color: #111111; }
+    [data-testid="stHeader"]           { background-color: #ffffff; }
+    [data-testid="stSidebar"]          { display: none; }
+    [data-testid="collapsedControl"]   { display: none; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 # ── Constants ─────────────────────────────────────────────────────────────────
 
 PHASE_COLORS = {
