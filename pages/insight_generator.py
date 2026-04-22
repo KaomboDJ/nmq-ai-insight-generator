@@ -28,6 +28,15 @@ st.markdown(
     [data-testid="stSidebar"] { display: none; }
     [data-testid="collapsedControl"] { display: none; }
     h1, h2, h3 { color: #000000; }
+    .stTabs [data-baseweb="tab-list"] { border-bottom: 2px solid #e5e7eb; }
+    .stTabs [data-baseweb="tab"] {
+        color: #555555 !important;
+        font-weight: 500;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #E8531F !important;
+        border-bottom: 2px solid #E8531F !important;
+    }
     .stButton > button,
     button[kind="primary"],
     button[kind="secondary"] {
