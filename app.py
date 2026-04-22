@@ -135,6 +135,13 @@ st.markdown("""
   }
   [data-testid="stFileUploader"] *,
   [data-testid="stFileUploaderDropzone"] * { color: #0f172a !important; }
+  [data-testid="stFileUploaderDropzone"] button,
+  [data-testid="stFileUploaderDropzone"] button * {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 6px !important;
+  }
   [data-baseweb="popover"] ul {
     background-color: #ffffff !important;
     color: #0f172a !important;
