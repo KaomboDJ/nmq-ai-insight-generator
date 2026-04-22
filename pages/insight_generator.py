@@ -53,34 +53,64 @@ with col_title:
 
 st.divider()
 
-# ── File upload ───────────────────────────────────────────────────────────────
+# ── Data source ───────────────────────────────────────────────────────────────
 
-uploaded = st.file_uploader(
-    "Upload your data file (Excel or CSV)",
-    type=["xlsx", "xls", "csv"],
-)
+tab_upload, tab_sheets = st.tabs(["Upload file", "Google Sheet"])
 
-if uploaded is None:
-    st.info("Upload a file to get started.")
+df = None
+source_label = ""
+
+with tab_upload:
+    uploaded = st.file_uploader(
+        "Upload your data file (Excel or CSV)",
+        type=["xlsx", "xls", "csv"],
+    )
+
+    @st.cache_data(show_spinner="Reading file...")
+    def load_file(file_bytes: bytes, file_name: str) -> pd.DataFrame:
+        if file_name.endswith(".csv"):
+            out = pd.read_csv(io.BytesIO(file_bytes))
+        else:
+            out = pd.read_excel(io.BytesIO(file_bytes))
+        out.columns = [c.strip().lower().replace(" ", "_") for c in out.columns]
+        return out
+
+    if uploaded is not None:
+        df = load_file(uploaded.read(), uploaded.name)
+        source_label = uploaded.name
+
+with tab_sheets:
+    st.caption("The sheet must be shared as **Anyone with the link can view**.")
+    sheet_url = st.text_input("Paste your Google Sheet URL", placeholder="https://docs.google.com/spreadsheets/d/...")
+
+    @st.cache_data(show_spinner="Loading sheet...")
+    def load_sheet(url: str) -> pd.DataFrame:
+        import re
+        match = re.search(r"/spreadsheets/d/([a-zA-Z0-9_-]+)", url)
+        if not match:
+            raise ValueError("Could not find a sheet ID in that URL. Make sure you paste the full Google Sheets link.")
+        sheet_id = match.group(1)
+        gid_match = re.search(r"[#&?]gid=(\d+)", url)
+        gid = gid_match.group(1) if gid_match else "0"
+        export_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
+        out = pd.read_csv(export_url)
+        out.columns = [c.strip().lower().replace(" ", "_") for c in out.columns]
+        return out
+
+    if sheet_url:
+        try:
+            df = load_sheet(sheet_url)
+            source_label = "Google Sheet"
+        except Exception as e:
+            st.error(f"Could not load the sheet: {e}")
+            df = None
+
+if df is None:
+    st.info("Upload a file or paste a Google Sheet URL to get started.")
     st.stop()
 
-# ── Load data ─────────────────────────────────────────────────────────────────
-
-@st.cache_data(show_spinner="Reading file...")
-def load_file(file_bytes: bytes, file_name: str) -> pd.DataFrame:
-    if file_name.endswith(".csv"):
-        df = pd.read_csv(io.BytesIO(file_bytes))
-    else:
-        df = pd.read_excel(io.BytesIO(file_bytes))
-    df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
-    return df
-
-
-file_bytes = uploaded.read()
-df = load_file(file_bytes, uploaded.name)
-
 st.success(
-    f"Loaded **{len(df):,} rows** and **{len(df.columns)} columns** from `{uploaded.name}`."
+    f"Loaded **{len(df):,} rows** and **{len(df.columns)} columns** from `{source_label}`."
 )
 
 with st.expander("Preview data (first 10 rows)"):
